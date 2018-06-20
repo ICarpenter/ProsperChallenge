@@ -5,21 +5,31 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-import Add from '@material-ui/icons/Add';
+import IconButton from '@material-ui/core/IconButton';
+import AddBox from '@material-ui/icons/AddBox';
 import Tag from './Tag';
 
 const styles = ({spacing}) => ({
   root: {
     padding: spacing.unit * 2,
     marginRight: spacing.unit * 4,
+    minWidth: spacing.unit * 20,
   },
-  ul: {
-    listStyleType: 'none',
-    margin: 0,
-    paddingLeft: 0,
+  tagWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  applyButton: {
+    marginTop: spacing.unit * 2,
+    width: '100%',
   },
   addTagWrapper: {
     display: 'flex',
+    marginTop: spacing.unit * 2,
+    padding: spacing.unit * 1,
+  },
+  tagHeading: {
+    marginBottom: spacing.unit * 2,
   }
 });
 
@@ -35,34 +45,35 @@ const Tags = ({
   deleteTag
 }) => (
   <Paper className={classes.root}>
-    <Typography variant="display1">Tags</Typography>
-    <ul className={classes.ul}>
-      {tags.map((tag) => <li key={tag.id}>
-        <Tag
-          checkedStatus={selectedTags[tag.id]}
-          tag={tag}
-          toggleTagSelected={toggleTagSelected}
-          deleteTag={deleteTag}/>
-      </li>)}
-    </ul>
+    <Typography variant="display1" className={classes.tagHeading}>Tags</Typography>
+    <div className={classes.tagWrapper}>
+      {tags.map((tag) => <Tag
+        checkedStatus={selectedTags[tag.id]}
+        tag={tag}
+        toggleTagSelected={toggleTagSelected}
+        deleteTag={deleteTag}/>)}
+    </div>
+    <Button
+      className={classes.applyButton}
+      color="primary"
+      variant="raised"
+      onClick={() => applyTagsToMessages()}>
+      Apply
+    </Button>
     <div className={classes.addTagWrapper}>
-      <Button
-        onClick={() => addTag(newTagLabel)}
-        size="small"
-        disabled={!newTagLabel}>
-        <Add/>
-      </Button>
       <TextField
         label="Add a tag"
         value={newTagLabel}
         onChange={(e) => updateNewTagLabel(e.target.value)}
-        margin="normal"
+        margin="none"
       />
+      <IconButton
+        onClick={() => addTag(newTagLabel)}
+        size="small"
+        disabled={!newTagLabel}>
+        <AddBox/>
+      </IconButton>
     </div>
-    <Button
-      onClick={() => applyTagsToMessages()}>
-      Apply
-    </Button>
   </Paper>
 );
 
