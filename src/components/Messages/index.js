@@ -26,6 +26,7 @@ const styles = ({spacing}) => ({
 const Messages = ({
   classes,
   messages,
+  selectedMessages,
   tags,
   toggleMessageSelected,
   addMessage,
@@ -43,6 +44,7 @@ const Messages = ({
           toggleMessageSelected={toggleMessageSelected}
           message={message}
           deleteMessage={deleteMessage}
+          isSelected={selectedMessages[message.id] || false}
         />)}
     </div>
     <div className={classes.addMessageWrapper}>

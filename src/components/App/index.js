@@ -3,7 +3,7 @@ import Tags from '../Tags';
 import Messages from '../Messages';
 import { compose } from 'recompose';
 import { withStyles } from '@material-ui/core';
-import { find, keys, reject, omit } from 'lodash';
+import { find, keys, reject, omit, get, without, union } from 'lodash';
 import {messages, tags} from '../../data';
 
 export const SELECTED_ACTIVE = 'active';
@@ -24,6 +24,7 @@ class App extends React.Component {
       messages: [...messages],
       tags: [...tags],
       selectedTags: {},
+      selectedMessages: {},
       newMessageBody: '',
       newTagLabel: '',
     }
@@ -72,7 +73,8 @@ class App extends React.Component {
     if (filteredSelected.length) {
       updated.tags = filteredSelected.map((t) => parseInt(t))
     }
-    const idsToUpdate = messages.filter((m) => m.isSelected).map(m => m.id);
+
+    const idsToUpdate = this._getSelectedMessage().map(m => m.id);
     const updatedMessages = messages.map((m) => idsToUpdate.includes(m.id) ? {...m, ...updated} : m);
     this.setState({
       messages: updatedMessages,
@@ -81,12 +83,9 @@ class App extends React.Component {
   }
 
   toggleMessageSelected = ({id}) => {
-    const messages = [...this.state.messages];
-    const messageToUpdate = find(messages, {id});
-    const updated = {...messageToUpdate, ...{isSelected: !messageToUpdate.isSelected }};
-    const updatedMessages = messages.map((m) => m.id === id ? updated : m);
+    const messageSelected = get(this.state.selectedMessages, `${id}`);
     this.setState({
-      messages: updatedMessages,
+      selectedMessages: {...this.state.selectedMessages, ...{[id]: !messageSelected}},
     }, () => this.updateSelectedTags());
   }
 
@@ -103,29 +102,28 @@ class App extends React.Component {
     });
   }
 
+  _getSelectedMessage = () => {
+    const messagesIds = keys(this.state.selectedMessages).filter((id) => this.state.selectedMessages[id]).map(id => parseInt(id));
+    return this.state.messages.filter(m => messagesIds.includes(m.id));
+  }
+
   updateSelectedTags = () => {
-    const selected = this.state.selectedTags;
-
-    // grab all of the currently selected messages' tags
-    const selectedMTs = this.state.messages.filter(m => m.isSelected).map(m => m.tags);
-    let results = {};
-
-    // add the user overridden tags to the results array first
-    const overrides = keys(selected).filter(id => selected[id] === SELECTED_OVERRIDE);
-    overrides.forEach(id => results[id] = SELECTED_OVERRIDE);
-
-    selectedMTs.forEach(sti => {
-      sti.forEach((st) => {
-        // if every selected message has the tag, set as ACTIVE
-        if (selectedMTs.every(smt => smt.includes(st))) {
-          results[st] = SELECTED_ACTIVE;
-          // if only some have the tag, set as INDETERMINATE
-        } else if (selectedMTs.some(smt => smt.includes(st))) {
-          results[st] = SELECTED_INDETERMINATE;
-        }
-      })
+    const selectedMs = this._getSelectedMessage();
+    const results = {};
+    const tracker = {};
+    selectedMs.forEach((m) =>{
+      m.tags.forEach((t) => {
+        tracker[t] = tracker[t] ? tracker[t] + 1 : 1;
+      });
     });
 
+    keys(tracker).forEach((t) => {
+      if (tracker[t] !== selectedMs.length) {
+        results[t] = SELECTED_INDETERMINATE;
+      } else {
+        results[t] = SELECTED_ACTIVE;
+      }
+    });
     this.setState({
       selectedTags: results,
     })
@@ -148,6 +146,7 @@ class App extends React.Component {
         <Messages
           tags={this.state.tags}
           addMessage={this.addMessage}
+          selectedMessages={this.state.selectedMessages}
           updateNewMessageBody={this.updateNewMessageBody}
           newMessageBody={this.state.newMessageBody}
           messages={this.state.messages}

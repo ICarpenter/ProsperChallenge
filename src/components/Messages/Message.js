@@ -64,10 +64,10 @@ const styles = ({spacing, palette}) => ({
   }
 });
 
-const Message = ({classes, message, messageTags, toggleMessageSelected, deleteMessage}) => (
+const Message = ({classes, message, isSelected, messageTags, toggleMessageSelected, deleteMessage}) => (
   <div className={classes.root}>
     <Checkbox
-      checked={message.isSelected}
+      checked={isSelected}
       onChange={() => toggleMessageSelected(message)}
     />
     <div className={classes.messageBody}>
